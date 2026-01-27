@@ -25,8 +25,10 @@ Before diving into the tools, it's important to understand the two main parts of
 If the traditional app is a large restaurant, **Streamlit** is a **Food Truck**. 
 *   In a food truck, the chef (Backend) is standing right at the window (Frontend).
 *   There is no dining room and no waiter. You place your order directly to the person cooking it.
-*   **Why use it?** It's incredibly fast to set up because you only write one file in one language (Python).
-*   **The Trade-off:** Just like a food truck has a smaller menu than a 5-star restaurant, Streamlit is less flexible than a full "Dockerized" setup, but perfect for 90% of AI and data projects.
+*   **Why use it?** It's incredibly fast to set up because you only write one file in one language (Python). 
+*   **MVPs (Minimum Viable Products):** Streamlit is perfect for testing an idea quickly. You can go from zero to a working AI app in minutes.
+*   **The Trade-off:** Just like a food truck has a smaller menu than a 5-star restaurant, Streamlit is less flexible than a full "Dockerized" setup. 
+*   **Privacy Warning:** To use the free Streamlit Cloud, your code usually must be **Public** on GitHub. If you need a private app, you'll eventually need to Dockerize it (see Part 4).
 
 ---
 
@@ -82,6 +84,9 @@ Most apps need extra "tools" or "libraries" to work (like Streamlit itself!). Pi
 
 **How to install:**
 1.  **VS Code:** Download and install from [code.visualstudio.com](https://code.visualstudio.com/).
+    *   **Don't be afraid:** It looks complicated, but you won't be doing much manual coding.
+    *   **Pro Tip:** Use `Ctrl + Minus` or `Ctrl + Plus` to adjust the zoom so you can see your files and chat comfortably.
+    *   **Select your folder:** When you open VS Code, always select the project folder you want to work in (e.g., your "github" base folder).
 2.  **Cline Addon:** 
     *   Open VS Code.
     *   Click the "Extensions" icon on the left sidebar (it looks like four squares).
@@ -95,9 +100,11 @@ To get the most out of Cline, you need to give it the right "senses" and "permis
 **1. Adding API Keys**
 Cline needs an AI brain to function. 
 *   Click the **Settings (Gear Icon)** at the bottom of the Cline panel.
-*   **Provider:** We recommend **OpenRouter** or **OpenAI**.
+*   **Provider:** We recommend **OpenRouter** or **Google Gemini**.
 *   **API Key:** Paste your key here. (See "Secrets and API Keys" below for how to get one).
-*   **Model:** Choose a powerful model like `anthropic/claude-3.5-sonnet` (via OpenRouter) or `gpt-4o`.
+*   **Model Strategy:**
+    *   **Flash Models (e.g., Gemini Flash):** Use these for 90% of tasks. They are fast, lightweight, and very cheap (pennies!).
+    *   **Pro Models (e.g., Claude 3.5 Sonnet, GPT-4o, Gemini Pro):** Use these only for complex logic or when the AI gets stuck. They are much more expensive.
 
 **2. Enabling "Auto-Approve" (The Magic Sauce)**
 By default, Cline will ask for your permission before doing *anything*. This gets annoying quickly. To enable "Vibe Coding" mode, go to the **Settings** and look for the **Auto-Approve** section.
@@ -108,6 +115,13 @@ By default, Cline will ask for your permission before doing *anything*. This get
 *   **MCP Servers:** Allows Cline to use advanced tools.
 
 > 💡 **Pro Tip:** We recommend enabling **ALL** auto-approve settings **EXCEPT for the "Browser"**. This allows Cline to build your app autonomously while you keep manual control over web-based interactions.
+
+**3. Mastering the "Vibe" Workflow**
+*   **Plan vs. Act:** Always start in **Plan** mode. Let Cline explore your files and explain what it *wants* to do. Once you're happy, tell it to **"Act"**.
+*   **Explain the "Why":** Don't just say "Fix this." Explain the context. Example: *"When I switch back and forth between tables, the data disappears. Check the Golden Clue app page and fix the state management."*
+*   **The "Intelligence" Reset (CRITICAL):** AI gets "stupider" the longer a single chat window stays open. 
+    *   **Rule:** One feature = One chat.
+    *   As soon as a task is done, **start a new chat window**. This keeps the AI focused and saves you a lot of money (long chats are expensive!).
 
 ### 3. GitHub Desktop: The Courier
 
@@ -465,9 +479,36 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
-**Getting your code onto the server:**
-1.  In the server terminal, type: `git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git`
-2.  Go into your project folder: `cd YOUR_REPO_NAME`
+**Getting your code onto the server (The SSH Way):**
+If your repository is **Private**, you can't just `git clone` with a simple link. You need to give your server permission to access your GitHub account using an **SSH Key**.
+
+1.  **Generate a key on your server:**
+    *   While logged into your server (via `ssh root@...`), type:
+        ```bash
+        ssh-keygen -t ed25519 -C "server-key"
+        ```
+    *   Press **Enter** three times (no password needed).
+2.  **Copy the "Public" part of the key:**
+    *   Type: `cat ~/.ssh/id_ed25519.pub`
+    *   Highlight and **Copy** the long string of text that appears.
+3.  **Add it to GitHub as a "Deploy Key" (The Secret Sauce):**
+    *   Go to your repository on [github.com](https://github.com).
+    *   Click **Settings** (the gear icon in the top tabs of the repo).
+    *   On the left sidebar, click **Deploy keys**.
+    *   Click **Add deploy key**.
+    *   **Title:** Call it "DigitalOcean Server".
+    *   **Key:** Paste the text you copied from the server.
+    *   **CRITICAL:** Leave "Allow write access" **unchecked** for safety.
+    *   Click **Add key**.
+4.  **Test the connection:**
+    *   On your server, type: `ssh -T git@github.com`
+    *   If it asks if you want to continue connecting, type `yes` and hit Enter.
+    *   You should see: *"Hi [YourName]! You've successfully authenticated..."*
+5.  **Clone your repo using the SSH link:**
+    *   Go to your GitHub repo main page, click the green **Code** button, and select the **SSH** tab.
+    *   Copy that link (it starts with `git@github.com:...`).
+    *   In your server terminal, type: `git clone YOUR_SSH_LINK_HERE`
+6.  **Go into your project folder:** `cd YOUR_REPO_NAME`
 
 #### 4. The Critical Step: Copying Secrets to Server
 1.  In your server terminal: `nano .env`
@@ -521,7 +562,13 @@ Run the provided script: `./init_ssl.sh` and follow the prompts to get the secur
 
 ---
 
-## Part 5: Deployment & Maintenance
+## Part 5: "Vibe Coding" Philosophy & Maintenance
+
+### The Core Philosophy: Barely Touch the Code
+The most important thing to understand about "Vibe Coding" is that you are the **Director**, and Cline is the **Production Crew**.
+*   **Don't build it line-by-line:** Ask for features, not code. Instead of saying "Add a `<button>` with a `handleOnClick` function," say "Add a button that exports the table to Excel."
+*   **Let Cline Debug:** If something doesn't work, don't try to fix the code yourself. Copy the error and tell Cline: *"I tried to click the export button but it crashed with this error. Fix it."*
+*   **Dockerize everything (Eventually):** Once you move past simple Streamlit apps, use Docker. It makes your app a "portable package" that works exactly the same on your laptop and your server. Ask Cline: *"I have this app, please Dockerize it for me so I can deploy it to a server."*
 
 ### 1-Click Deployment (Docker Path)
 Your projects come with a `deploy.bat` file.
@@ -540,6 +587,7 @@ If you're building a professional app, you might not want people to easily read 
 ### Troubleshooting & Common Problems
 
 #### "My site is down / says Error!"
+*   **The AI Fix (Fastest):** Copy the entire error message from your terminal or browser and paste it into Cline. Say: *"I got this error, what should I do?"* Cline will look at your files and often fix it automatically.
 *   **Check requirements.txt (Streamlit):** Did you forget a library?
 *   **Check Logs:** 
     *   *Streamlit:* Click "Manage app" > "Logs".
