@@ -1,0 +1,40 @@
+# This file 'overrides' the production file for local development.
+# It makes it easier to test changes on your laptop without needing SSL or Nginx.
+
+services:
+  # Disable Nginx and Certbot locally to save resources
+  nginx:
+    entrypoint: ["echo", "Nginx disabled for dev"]
+  certbot:
+    entrypoint: ["echo", "Certbot disabled for dev"]
+
+  backend:
+    environment:
+      - ENV=local
+    volumes:
+      # Mount your local folder so when you change a file, the app updates immediately!
+      - ./backend/app:/app/app:cached
+    # Open the backend to your local network so you can test it directly
+    ports:
+      - "8000:8000"
+
+  frontend:
+    # Use the default 'development' stage (usually defined as the default in Dockerfile)
+    build:
+      target: development
+      args:
+        - OBFUSCATE=false # Never obfuscate during development! It makes debugging impossible.
+    volumes:
+      - ./frontend/src:/app/src:cached
+      - ./frontend/public:/app/public:cached
+    environment:
+      # These flags help React detect changes inside a Docker container (Polling)
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - WDS_SOCKET_PORT=0
+    # Open the frontend so you can see it at http://localhost:3000
+    ports:
+      - "3000:3000"
+    # Don't open the browser automatically inside the container
+    stdin_open: true
+    tty: true

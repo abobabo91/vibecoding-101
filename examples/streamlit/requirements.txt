@@ -1,0 +1,8 @@
+streamlit
+pandas
+openai
+python-dotenv
+# Add other libraries here, for example:
+# google-cloud-bigquery
+# matplotlib
+# plotly

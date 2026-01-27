@@ -27,6 +27,10 @@ Before diving into the tools, it's important to understand the two main parts of
 
 Before you build anything, you need to set up your workshop. We need four main tools.
 
+> 💡 **New!** Check out the `examples/` folder for ready-to-use templates of `docker-compose`, `Dockerfile`, `deploy.bat`, and **Streamlit** apps!
+
+### 1. Python: The Engine
+
 ### 1. Python: The Engine
 **What is it?** Python is the programming language that runs your app (Streamlit or FastAPI backend). Think of it as the engine under the hood.
 
@@ -127,6 +131,26 @@ When working with Docker, you will use "Docker Compose" to manage your app. Here
     *   Use **`up --build`** when you want to start or update your app.
     *   Use **`down`** when you want to stop everything.
 
+### ⚡ Hot Reload: Developing at Warp Speed
+Normally, if you change your code in Docker, you have to run `--build` and wait minutes for it to finish. **Hot Reload** lets you see changes **instantly** (within seconds) while the app is still running.
+
+#### How it works:
+We use a Docker feature called **Volumes**. Think of it like a "wormhole" between your computer folder and the container. 
+*   When you save a file in VS Code, the "wormhole" sends it into the container.
+*   The Backend (FastAPI) and Frontend (React) "hear" the change and refresh themselves immediately.
+
+#### Example Command for Hot Reload:
+Run this on your computer while developing:
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+*(Note: No `--build` is needed if you've built it once already!)*
+
+#### Troubleshooting Windows/Mac:
+Sometimes Docker can't "hear" the changes on Windows. To fix this, our `docker-compose.dev.yml` uses **Polling**. 
+*   It tells the app: "Check every 500 milliseconds if any file changed." 
+*   It's a tiny bit slower but 100% reliable on all computers.
+
 ## Part 2: Working on Your Project
 
 ### Cloning: Bringing Your Work Home
@@ -202,6 +226,15 @@ To use AI and login systems, you need keys from the providers.
     *   **Publishable Key**: Starts with `pk_test_...` (for local testing).
     *   **Secret Key**: Starts with `sk_test_...` (for local testing).
 *   Copy these into your `.env` file (see below).
+
+**4. Google Cloud (BigQuery & Service Accounts)**
+If your app needs to talk to a heavy-duty database like BigQuery, you need more than just a password—you need a **Service Account JSON Key**.
+*   **Go to:** [Google Cloud Console](https://console.cloud.google.com/).
+*   **Enable API:** Search for "BigQuery API" and click **Enable**.
+*   **Create Service Account:** Go to **IAM & Admin > Service Accounts**. Click **Create Service Account**.
+*   **Assign Roles:** Give it the "BigQuery Data Viewer" and "BigQuery User" roles.
+*   **Create Key:** Click on your new account, go to the **Keys** tab, and click **Add Key > Create new key (JSON)**.
+*   **Save it safely:** Your computer will download a `.json` file. This file IS your password. Never share it!
 
 #### What do Secrets look like?
 Secrets are usually key-value pairs. Think of them like a list of passwords where the "Key" is the name of the service and the "Value" is your unique password.
@@ -296,15 +329,39 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 2.  Go into your project folder: `cd YOUR_REPO_NAME`
 
 #### 4. The Critical Step: Copying Secrets to Server
->>>>>>>------- SEARCH
-#### 5. SSL (HTTPS)
+1.  In your server terminal: `nano .env`
+2.  Paste your local `.env` content, then `Ctrl + X`, `Y`, `Enter`.
+3.  Repeat for `backend/app/secrets.toml` (use `mkdir -p backend/app` first).
+
+#### 5. Nginx: The Professional Traffic Controller
+In a professional setup, you don't want users connecting directly to your app. Instead, you use **Nginx** as a "Front Desk".
+*   **What it does:** It receives all internet traffic, handles the "HTTPS" security, and then passes the request to your Docker containers.
+*   **Benefits:** It's much faster, more secure, and allows you to run multiple apps on one server.
+*   **Setup:** Your Docker projects already include an `nginx/` folder with a `nginx.conf` file. Docker Compose sets this up automatically!
+
+#### 6. SSL (HTTPS)
 Run the provided script: `./init_ssl.sh` and follow the prompts to get the secure lock icon.
 
 ---
-#### 5. SSL (HTTPS)
-Run the provided script: `./init_ssl.sh` and follow the prompts to get the secure lock icon.
 
-#### 6. Manual Deployment & Updates (The Terminal Way)
+### Option C: Headless Servers & GUI Apps (The "Virtual Screen")
+Sometimes you need to run an app that **requires a screen** (like Interactive Brokers TWS) on a server that **doesn't have one**.
+
+#### 1. What is a "Headless" Server?
+A server is just a box in a data center. It has no monitor, keyboard, or mouse. To see what's happening, we create a **Virtual Desktop**.
+
+#### 2. Setup (Run on Server)
+1.  **Install the Desktop:** `sudo apt install -y lxde-core tigervnc-standalone-server`
+2.  **Set a Password:** Run `vncpasswd` and choose a password.
+3.  **Start the Virtual Screen:** `vncserver :1 -localhost no`
+4.  **Connect from your PC:** 
+    *   Download a **VNC Viewer** (like RealVNC or mRemoteNG).
+    *   Connect to `YOUR_IP:5901`.
+    *   You can now see and use the server's desktop just like your own computer!
+
+---
+
+#### 7. Manual Deployment & Updates (The Terminal Way)
 If you don't use `deploy.bat`, here is how you manually update your site on the server:
 
 1.  **Login:** `ssh root@YOUR_IP_ADDRESS`
@@ -329,6 +386,15 @@ Run the provided script: `./init_ssl.sh` and follow the prompts to get the secur
 Your projects come with a `deploy.bat` file.
 1.  Push all changes to GitHub.
 2.  Double-click `deploy.bat` on your computer. It logs in, pulls code, and rebuilds.
+
+### Protecting Your Code (Obfuscation)
+If you're building a professional app, you might not want people to easily read your "secret sauce" (your custom Excel formulas or logic).
+*   **What is Obfuscation?** It's like a code scrambler. It turns readable code like `calculateProfit()` into nonsense like `_0x1a2b()`. The computer still understands it, but humans can't.
+*   **How to use it:** Your Docker projects are set up to do this automatically during the build.
+*   **Toggle it:** If you're debugging and need to see your own code clearly, you can turn it off in the Docker command:
+    ```bash
+    docker compose build --build-arg OBFUSCATE=false
+    ```
 
 ### Troubleshooting & Common Problems
 
