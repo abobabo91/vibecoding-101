@@ -37,7 +37,6 @@ Before you build anything, you need to set up your workshop. We need four main t
 
 > 💡 **New!** Check out the `examples/` folder for ready-to-use templates of `docker-compose`, `Dockerfile`, `deploy.bat`, and **Streamlit** apps!
 
-### 1. Python: The Engine
 
 ### 1. Python: The Engine
 **What is it?** Python is the programming language that runs your app (Streamlit or FastAPI backend). Think of it as the engine under the hood.
@@ -224,6 +223,22 @@ Git is your "Time Machine" and "Safety Net". While Cline handles the code, you h
 
 ### Terminal Mastery (Navigating the Matrix)
 The terminal (or Bash) is the direct line to your computer's brain. When you're on a server, there are no icons or folders to click—only text.
+
+#### 0. How to Open Your Terminal (Windows)
+Before you can run commands, you need to open the terminal in the right place.
+
+*   **The "Pro" Way (Right-click Git Bash):**
+    1.  Open your project folder in Windows File Explorer.
+    2.  Right-click anywhere in the empty space of the folder.
+    3.  Select **"Git Bash Here"** (on Windows 11, you may need to click "Show more options" first).
+    4.  *Why?* This opens the terminal exactly inside your project folder, so you don't have to navigate manually!
+*   **The VS Code Way (Internal Terminal):**
+    1.  Inside VS Code, press **`Ctrl + ` `** (the backtick key next to the '1').
+    2.  Or go to the top menu: **Terminal > New Terminal**.
+    3.  *Why?* You can write code and run it in the same window without switching apps.
+*   **The Traditional Way (CMD):**
+    1.  Press the `Windows Key`, type `cmd`, and press Enter.
+    2.  *Note:* You will usually need to use `cd` commands to get to your project folder from here.
 
 #### 1. Movement & Investigation
 *   **`ls` (List):**
