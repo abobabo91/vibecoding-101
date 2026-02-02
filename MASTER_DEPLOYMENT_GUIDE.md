@@ -553,19 +553,47 @@ Run the provided script: `./init_ssl.sh` and follow the prompts to get the secur
 ---
 
 ### Option C: Headless Servers & GUI Apps (The "Virtual Screen")
-Sometimes you need to run an app that **requires a screen** (like Interactive Brokers TWS) on a server that **doesn't have one**.
 
-#### 1. What is a "Headless" Server?
-A server is just a box in a data center. It has no monitor, keyboard, or mouse. To see what's happening, we create a **Virtual Desktop**.
+#### 1. Why do we do this?
+A server is just a box in a data center. It has no monitor, keyboard, or mouse. Most server apps (like websites) run purely as text, but some apps (like **Interactive Brokers Gateway**) *require* a graphical window to change settings or log in. 
 
-#### 2. Setup (Run on Server)
-1.  **Install the Desktop:** `sudo apt install -y lxde-core tigervnc-standalone-server`
-2.  **Set a Password:** Run `vncpasswd` and choose a password.
-3.  **Start the Virtual Screen:** `vncserver :1 -localhost no`
-4.  **Connect from your PC:** 
-    *   Download a **VNC Viewer** (like RealVNC or mRemoteNG).
-    *   Connect to `YOUR_IP:5901`.
-    *   You can now see and use the server's desktop just like your own computer!
+To see these apps, we create a **Virtual Desktop** that lives on the server but broadcasts to your computer.
+
+#### 2. Setup (Run on your Server via SSH)
+Paste these commands to install a lightweight "brain" (LXDE) and the "broadcaster" (TigerVNC):
+```bash
+sudo apt update
+sudo apt install -y lxde-core xfce4-goodies tigervnc-standalone-server tigervnc-common tigervnc-tools dbus-x11
+```
+
+1.  **Set a Password:** Run `vncpasswd` and choose a password.
+2.  **Start the Broadcaster:** `vncserver :1 -localhost no`
+    *   *Note: `:1` means "Display 1". This will use port **5901**.*
+
+#### 3. Connect from your PC (The "Window")
+We highly recommend **mRemoteNG** for Windows users. It's a powerful tool that lets you save all your server connections (SSH and VNC) in one organized list.
+1.  **Download:** [mRemoteNG](https://mremoteng.org/)
+2.  **Add Connection:**
+    *   **Protocol:** VNC
+    *   **Hostname:** Your Server IP
+    *   **Port:** 5901
+3.  **Connect:** You can now see and use the server's desktop just like your own computer!
+
+#### 4. Pro Tip: Troubleshooting "Unable to open display"
+If you are logged in as `root` but your app needs to run as a different user (like `ibkr`), the server might block the window for security.
+
+**The Fix (Run as root):**
+```bash
+DISPLAY=:1 xhost +
+```
+*This tells the server: "Let anyone draw on Display :1".*
+
+**How to open any app on your VNC screen:**
+If you're in an SSH terminal and want an app to pop up on your VNC window, just add `DISPLAY=:1` before the command:
+```bash
+export DISPLAY=:1
+./your-gui-app.sh
+```
 
 ---
 
