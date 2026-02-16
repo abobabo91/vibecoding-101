@@ -145,10 +145,15 @@ Dockerization is the process of wrapping your application (including its code, l
 
 ---
 #### For Dockerized Apps (Full-Stack):
-1.  Open your project folder in **VS Code**.
-2.  Open the Terminal (**Terminal > New Terminal**).
-3.  Type: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build`
-4.  **Wait:** Docker will download everything needed and start your app.
+1.  **Project Structure:** A typical full-stack app is organized like this:
+    *   `/backend`: FastAPI (Python) code.
+    *   `/frontend`: React (TypeScript) code.
+    *   `docker-compose.dev.yml`: Orchestrates both services for local development.
+    *   `docker-compose.yml`: (Optional) A production version without hot-reload.
+2.  **Launching (Dev Mode):** Open your project folder in **VS Code**, open the Terminal, and type: 
+    `docker compose -f docker-compose.dev.yml up --build`
+3.  **Hot-Reloading:** Ensure your `docker-compose.dev.yml` uses **Volumes** to map your local code into the container. This allows you to see changes instantly without rebuilding!
+4.  **Launching (Prod/Server Mode):** Type: `docker compose up --build -d`. This version is more stable and faster for servers as it doesn't watch for file changes.
 5.  **Open in Browser:**
     *   Frontend: http://localhost:3000
     *   Backend: http://localhost:8000
@@ -389,16 +394,29 @@ Google's setup is a bit more involved because it spans two different websites: *
 
 **3. Clerk (User Login/Auth)**
 **What is it?** Clerk is your app's **Digital Security Guard**. 
-Building a login system (with "Forgot Password", Google Login, and Session timeouts) is incredibly hard and dangerous to do yourself. Clerk handles all of that for you. When a user logs in, Clerk checks their ID and tells your app: "Yes, this is definitely Bob, and he is allowed in."
 
-*   **Go to:** [clerk.com](https://clerk.com/) and sign in.
-*   **Create Application:** Create a new application or select your existing project.
+*   **Step 1: Dashboard Setup:** Go to [clerk.com](https://clerk.com/), create an application, and get your keys from **Configure > API Keys**.
+*   **Step 2: Frontend Integration:**
+    *   Wrap your app in `<ClerkProvider publishableKey={...}>` in `App.tsx`.
+    *   Use `<SignedIn>` and `<SignedOut>` components to protect your pages.
+*   **Step 3: Backend Security (Critical):**
+    *   Your frontend will send a **Bearer Token** in the API header.
+    *   Your FastAPI backend must verify this token. 
+    *   **Implementation:** Use `PyJWKClient` and `jwt.decode` to verify the token against Clerk's public keys (`/.well-known/jwks.json`).
+*   **Keys needed:**
+    *   `Publishable Key`: Used in your Frontend `.env`.
+    *   `Secret Key`: Used in your Backend `docker-compose` environment.
+    *   `JWT Issuer URL`: Usually `https://[your-clerk-domain].clerk.accounts.dev`.
 
-*   Go to **Configure > API Keys** in the sidebar.
-*   You will see:
-    *   **Publishable Key**: Starts with `pk_test_...` (for local testing).
-    *   **Secret Key**: Starts with `sk_test_...` (for local testing).
-*   Copy these into your `.env` file (see below).
+**4. Google Cloud (Firestore & Service Accounts)**
+If your app needs to store data in Firestore, you need a **Service Account JSON Key**.
+*   **Step 1: Enable API:** In [Google Cloud Console](https://console.cloud.google.com/), search for and enable the **Firestore API**.
+*   **Step 2: Create Service Account:** Go to **IAM & Admin > Service Accounts**. Create an account and grant it the **Cloud Datastore Owner** role.
+*   **Step 3: Generate Key:** Click the account > **Keys** tab > **Add Key > Create new key (JSON)**.
+*   **Step 4: Integration:** 
+    *   Open the downloaded JSON file.
+    *   Copy the `project_id`, `private_key`, and `client_email` into your `secrets.toml`.
+    *   **Pro Tip:** In Python, initialize the client using `firestore.Client.from_service_account_info(cred_dict)`.
 
 **4. Google Cloud (BigQuery & Service Accounts)**
 If your app needs to talk to a heavy-duty database like BigQuery, you need more than just a password—you need a **Service Account JSON Key**.
@@ -484,6 +502,25 @@ If you need your code to stay in a **Private Repository** without paying:
     *   Digital Ocean will generate a new IP. From now on, use *this* IP for your domain settings and for SSH login.
 4.  **Connect Domain to IP (DNS):** In your domain provider settings (e.g., Namecheap), add an **A Record** with `@` as Host and your **Reserved IP** as the Value.
 
+### 🛡️ Hardening Your Server (The Digital Fortress)
+Running an app on a public server is like putting a safe in the middle of a busy street. Even if the safe is locked, you don't want thousands of people walking by and trying to pick the lock every day. 
+
+#### 1. The Firewall: Your First Line of Defense
+A firewall blocks "scanners" and "bots" from even seeing your app. You should configure your **DigitalOcean Cloud Firewall** (or `ufw`) with these strict rules:
+
+*   **Inbound Rules (Only allow these):**
+    *   **SSH (Port 22):** So you can manage the server.
+    *   **HTTP (Port 80):** To allow Nginx to redirect users to secure HTTPS.
+    *   **HTTPS (Port 443):** This is the main door for your users.
+*   **CLOSE EVERYTHING ELSE:** Ports like `3000`, `8000`, `5900`, or `8080` should **NEVER** be open to "All IPv4". 
+
+#### 2. Local Binding: The Ultimate Lock
+If your Backend and Frontend are on the same server, they can talk to each other "locally" (using `127.0.0.1`). 
+*   **How it works:** By binding your Docker ports to `127.0.0.1:8000:8000`, the app is only visible to the server itself. It is invisible to the internet, even if your firewall fails!
+*   **Internal Communication:** Firewalls do not block traffic *inside* the server. Your apps can still talk to each other perfectly even when the external ports are blocked.
+
+#### 3. Auth Tokens: Your Last Line of Defense
+Even with a firewall, every API should require a secret **`AUTH_TOKEN`** in the header. If a hacker somehow gets past your firewall, they still won't be able to trigger actions without your secret key.
 
 #### 3. First-Time Server Setup (Run these once)
 
