@@ -694,4 +694,47 @@ If you're building a professional app, you might not want people to easily read 
 *   **Digital Ocean:** Pausing a Droplet **does not** stop billing. You must **Destroy** the Droplet in the dashboard to stop being charged.
 *   **Google Cloud Run:** It is pay-as-you-go; if no one visits, you usually pay nothing.
 
+---
+
+## Part 6: OpenClaw — Your Personal AI Dispatch Center
+
+### 1. What is OpenClaw?
+**OpenClaw** is a personal AI assistant gateway that you run on your own hardware. 
+*   **The Concept:** If your AI models (like Claude or GPT) are the "Chefs" in the kitchen, and your Messaging Apps (WhatsApp, Telegram, Discord) are your "Front of House," then OpenClaw is the **Dispatch Center** that connects them.
+*   **Why use it?** It allows you to talk to your AI agents through the apps you already use every day. It's fast, local-first, and gives your AI "hands" to run commands on your computer.
+
+### 2. Setting Up OpenClaw (The "Zero-to-Hero" Path)
+OpenClaw is designed to be set up through an interactive "Wizard" that handles the hard work for you.
+
+#### Step 1: Install the Software
+Open your terminal (CMD or Git Bash) and run:
+```bash
+npm install -g openclaw@latest
+```
+*(Note: You need Node.js installed. If you don't have it, download the "LTS" version from [nodejs.org](https://nodejs.org/)).*
+
+#### Step 2: Run the Onboarding Wizard
+This is the magic part. Type this into your terminal:
+```bash
+openclaw onboard --install-daemon
+```
+*   **The Wizard:** It will walk you through setting up your workspace, choosing your AI models (like Anthropic Claude), and connecting your messaging channels.
+*   **The Daemon:** The `--install-daemon` flag ensures OpenClaw stays running in the background, even if you close your terminal.
+
+#### Step 3: Connect Your Channels
+During the wizard, you can pick how you want to talk to your AI:
+*   **WhatsApp:** Use `openclaw channels login` to link your phone.
+*   **Telegram/Discord:** Paste in your Bot Token (see "API Keys" above).
+*   **WebChat:** OpenClaw serves a built-in chat interface right in your browser.
+
+### 3. Talking to Your Assistant
+Once it's running, you can send messages to your bot on your chosen channel.
+*   **Agent Commands:** Send `/status` to see if your bot is healthy, or `/reset` to start a fresh conversation.
+*   **Skills:** OpenClaw can use "Skills" (like checking the weather or managing files). You can install new skills via the CLI or let the AI discover them through the **ClawHub** registry.
+
+### 4. Vibe Coding with OpenClaw
+OpenClaw fits perfectly into the "barely touch the code" philosophy.
+*   **Remote Control:** You can be away from your computer and tell your AI assistant on WhatsApp: *"Deploy the latest version of my app to the server"* or *"Check the logs and tell me why it crashed."*
+*   **Always-On:** Unlike a chat window you have to open, OpenClaw is always there in your pocket.
+
 
